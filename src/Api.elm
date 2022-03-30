@@ -21,7 +21,6 @@ parseXmlResponse decoder response =
                     b
                         |> Decode.run decoder
                         |> Result.mapError Http.BadBody
-                        |> Debug.log "Parsed"
 
                 _ ->
                     Err (Http.BadStatus md.statusCode)
