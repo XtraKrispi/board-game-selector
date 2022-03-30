@@ -1,4 +1,4 @@
-module Api exposing (..)
+module Api exposing (getBoardGames)
 
 import Http
 import Model exposing (..)

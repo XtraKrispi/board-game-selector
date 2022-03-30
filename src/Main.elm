@@ -21,8 +21,7 @@ import Html
         )
 import Html.Attributes
     exposing
-        ( classList
-        , placeholder
+        ( placeholder
         , src
         , type_
         , value
