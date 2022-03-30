@@ -38,8 +38,8 @@ parseXmlResponse decoder response =
             Err Http.NetworkError
 
 
-getBoardgames : (Result Http.Error (List Boardgame) -> msg) -> String -> Cmd msg
-getBoardgames msg username =
+getBoardGames : (Result Http.Error (List BoardGame) -> msg) -> String -> Cmd msg
+getBoardGames msg username =
     let
         task =
             Http.task
@@ -54,10 +54,3 @@ getBoardgames msg username =
     task
         |> Retry.with [ Retry.exponentialBackoff { interval = 1500, maxInterval = 6000 } ]
         |> Task.attempt msg
-
-
-
--- Http.get
---     { url = baseUrl ++ "/collection?excludesubtype=boardgameexpansion&subtype=boardgame&brief=0&stats=1&username=" ++ username
---     , expect = Http.Xml.expectXml msg (Decode.path [ "item" ] (Decode.list boardgameDecoder))
---     }

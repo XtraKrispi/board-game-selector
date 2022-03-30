@@ -61,16 +61,16 @@ type alias Model =
     { currentUsername : String
     , usernamesToSearch : List String
     , results :
-        Dict String (WebData (List Boardgame))
+        Dict String (WebData (List BoardGame))
     , playerCountSlider : SingleSlider.SingleSlider Msg
     , playtimeSlider : DoubleSlider.DoubleSlider Msg
     , ratingSlider : DoubleSlider.DoubleSlider Msg
-    , selectedBoardgame : Maybe ( List String, Boardgame )
+    , selectedBoardGame : Maybe ( List String, BoardGame )
     , filtersVisible : Bool
     }
 
 
-hasResults : { r | results : Dict String (WebData (List Boardgame)) } -> Bool
+hasResults : { r | results : Dict String (WebData (List BoardGame)) } -> Bool
 hasResults { results } =
     results
         |> Dict.toList
@@ -111,7 +111,7 @@ init _ =
                 , onHighChange = RatingFilterHighValueChanged
                 }
       , filtersVisible = False
-      , selectedBoardgame = Nothing
+      , selectedBoardGame = Nothing
       }
     , Cmd.none
     )
@@ -122,15 +122,15 @@ type Msg
     | AddUsernameToSearch
     | RemoveUsername String
     | SearchForCollections
-    | GotBoardgames String (Result Http.Error (List Boardgame))
+    | GotBoardGames String (Result Http.Error (List BoardGame))
     | PlayerCountFilterValueChanged Float
     | PlaytimeFilterLowValueChanged Float
     | PlaytimeFilterHighValueChanged Float
     | RatingFilterLowValueChanged Float
     | RatingFilterHighValueChanged Float
     | ToggleFilters
-    | SelectBoardgame ( List String, Boardgame )
-    | UnselectBoardgame
+    | SelectBoardGame ( List String, BoardGame )
+    | UnselectBoardGame
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -182,7 +182,7 @@ update msg model =
                 in
                 ( { model | results = Dict.union initDict model.results }
                 , model.usernamesToSearch
-                    |> List.map (\u -> Api.getBoardgames (GotBoardgames u) u)
+                    |> List.map (\u -> Api.getBoardGames (GotBoardGames u) u)
                     |> Cmd.batch
                 )
 
@@ -191,7 +191,7 @@ update msg model =
                 , Cmd.none
                 )
 
-        GotBoardgames u res ->
+        GotBoardGames u res ->
             let
                 val =
                     case res of
@@ -249,11 +249,11 @@ update msg model =
         ToggleFilters ->
             ( { model | filtersVisible = not model.filtersVisible }, Cmd.none )
 
-        SelectBoardgame bg ->
-            ( { model | selectedBoardgame = Just bg }, Cmd.none )
+        SelectBoardGame bg ->
+            ( { model | selectedBoardGame = Just bg }, Cmd.none )
 
-        UnselectBoardgame ->
-            ( { model | selectedBoardgame = Nothing }, Cmd.none )
+        UnselectBoardGame ->
+            ( { model | selectedBoardGame = Nothing }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -261,7 +261,7 @@ subscriptions _ =
     Sub.none
 
 
-overlay : List String -> Boardgame -> Html Msg
+overlay : List String -> BoardGame -> Html Msg
 overlay u bg =
     let
         item icon txt =
@@ -320,8 +320,8 @@ overlay u bg =
         ]
 
 
-viewBoardgame : List String -> Boardgame -> Html Msg
-viewBoardgame u bg =
+viewBoardGame : List String -> BoardGame -> Html Msg
+viewBoardGame u bg =
     div
         [ classes
             [ "flex-grow"
@@ -331,8 +331,8 @@ viewBoardgame u bg =
             , "duration-200"
             , "group"
             ]
-        , onMouseEnter (SelectBoardgame ( u, bg ))
-        , onMouseLeave UnselectBoardgame
+        , onMouseEnter (SelectBoardGame ( u, bg ))
+        , onMouseLeave UnselectBoardGame
         ]
         [ img
             [ src bg.thumbnailUrl
@@ -347,8 +347,8 @@ viewBoardgame u bg =
         ]
 
 
-isBoardgameApplicable : Model -> Boardgame -> Bool
-isBoardgameApplicable model bg =
+isBoardGameApplicable : Model -> BoardGame -> Bool
+isBoardGameApplicable model bg =
     let
         players =
             SingleSlider.fetchValue
@@ -378,7 +378,7 @@ isBoardgameApplicable model bg =
         <= maxRating
 
 
-allBoardGames : { r | results : Dict String (WebData (List Boardgame)) } -> List ( List String, Boardgame )
+allBoardGames : { r | results : Dict String (WebData (List BoardGame)) } -> List ( List String, BoardGame )
 allBoardGames { results } =
     let
         getOwners bg =
@@ -418,8 +418,8 @@ viewBoardGames model =
             model
                 |> allBoardGames
                 |> List.sortBy (.title << Tuple.second)
-                |> List.filter (isBoardgameApplicable model << Tuple.second)
-                |> List.map (uncurry viewBoardgame)
+                |> List.filter (isBoardGameApplicable model << Tuple.second)
+                |> List.map (uncurry viewBoardGame)
                 |> flip List.append
                     [ div
                         [ classes
@@ -639,7 +639,7 @@ view model =
                     )
                 ]
             ]
-        , case model.selectedBoardgame of
+        , case model.selectedBoardGame of
             Just ( u, bg ) ->
                 div
                     [ classes
