@@ -1,0 +1,43 @@
+{
+    "type": "application",
+    "source-directories": [
+        "src"
+    ],
+    "elm-version": "0.19.1",
+    "dependencies": {
+        "direct": {
+            "carwow/elm-slider": "11.1.6",
+            "choonkeat/elm-retry": "1.0.1",
+            "elm/browser": "1.0.2",
+            "elm/core": "1.0.5",
+            "elm/html": "1.0.0",
+            "elm/http": "2.0.0",
+            "elm/svg": "1.0.1",
+            "elm-community/basics-extra": "4.1.0",
+            "elm-community/list-extra": "8.5.2",
+            "elm-community/maybe-extra": "5.3.0",
+            "krisajenkins/remotedata": "6.0.1",
+            "myrho/elm-round": "1.0.4",
+            "ohanhi/remotedata-http": "4.0.0",
+            "ymtszw/elm-http-xml": "2.0.0",
+            "ymtszw/elm-xml-decode": "3.2.1"
+        },
+        "indirect": {
+            "debois/elm-dom": "1.3.0",
+            "elm/bytes": "1.0.8",
+            "elm/file": "1.0.5",
+            "elm/json": "1.1.3",
+            "elm/parser": "1.1.0",
+            "elm/random": "1.0.0",
+            "elm/time": "1.0.0",
+            "elm/url": "1.0.0",
+            "elm/virtual-dom": "1.0.2",
+            "jinjor/elm-xml-parser": "2.0.0",
+            "rtfeldman/elm-hex": "1.0.0"
+        }
+    },
+    "test-dependencies": {
+        "direct": {},
+        "indirect": {}
+    }
+}
