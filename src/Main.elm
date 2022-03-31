@@ -21,7 +21,8 @@ import Html
         )
 import Html.Attributes
     exposing
-        ( placeholder
+        ( classList
+        , placeholder
         , src
         , type_
         , value
@@ -39,6 +40,7 @@ import Icons
 import List.Extra as List
 import Maybe.Extra as Maybe
 import Model exposing (..)
+import Random
 import RemoteData exposing (RemoteData(..), WebData)
 import Round as R
 import SingleSlider
@@ -56,6 +58,10 @@ main =
         }
 
 
+type alias OwnedBoardGame =
+    ( List String, BoardGame )
+
+
 type alias Model =
     { currentUsername : String
     , usernamesToSearch : List String
@@ -64,7 +70,8 @@ type alias Model =
     , playerCountSlider : SingleSlider.SingleSlider Msg
     , playtimeSlider : DoubleSlider.DoubleSlider Msg
     , ratingSlider : DoubleSlider.DoubleSlider Msg
-    , selectedBoardGame : Maybe ( List String, BoardGame )
+    , selectedBoardGame : Maybe OwnedBoardGame
+    , randomlyChosenGame : Maybe OwnedBoardGame
     , filtersVisible : Bool
     }
 
@@ -111,6 +118,7 @@ init _ =
                 }
       , filtersVisible = False
       , selectedBoardGame = Nothing
+      , randomlyChosenGame = Nothing
       }
     , Cmd.none
     )
@@ -128,8 +136,11 @@ type Msg
     | RatingFilterLowValueChanged Float
     | RatingFilterHighValueChanged Float
     | ToggleFilters
-    | SelectBoardGame ( List String, BoardGame )
-    | UnselectBoardGame
+    | SelectBoardGame OwnedBoardGame
+    | UnSelectBoardGame
+    | RandomlySelectGame
+    | BoardGameRandomlySelected OwnedBoardGame
+    | UnSelectRandomGame
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -254,8 +265,29 @@ update msg model =
         SelectBoardGame bg ->
             ( { model | selectedBoardGame = Just bg }, Cmd.none )
 
-        UnselectBoardGame ->
+        UnSelectBoardGame ->
             ( { model | selectedBoardGame = Nothing }, Cmd.none )
+
+        RandomlySelectGame ->
+            ( model
+            , case filteredGames model of
+                [] ->
+                    Cmd.none
+
+                x :: xs ->
+                    Random.generate BoardGameRandomlySelected (Random.uniform x xs)
+            )
+
+        BoardGameRandomlySelected bg ->
+            ( { model
+                | randomlyChosenGame = Just bg
+                , filtersVisible = False
+              }
+            , Cmd.none
+            )
+
+        UnSelectRandomGame ->
+            ( { model | randomlyChosenGame = Nothing }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -307,7 +339,7 @@ overlay u bg =
                 , "flex-col"
                 ]
             ]
-            [ item Icons.pencil bg.title
+            [ item Icons.pencil (bg.title ++ " (" ++ String.fromInt bg.yearPublished ++ ")")
             , item Icons.star (R.round 1 bg.rating)
             , item Icons.users (R.round 0 bg.minPlayers ++ " - " ++ R.round 0 bg.maxPlayers)
             , item Icons.clock
@@ -412,14 +444,19 @@ allBoardGames { results } =
         |> List.map (\bg -> ( getOwners bg, bg ))
 
 
+filteredGames model =
+    model
+        |> allBoardGames
+        |> List.sortBy (.title << Tuple.second)
+        |> List.filter (isBoardGameApplicable model << Tuple.second)
+
+
 viewBoardGames : Model -> Html Msg
 viewBoardGames model =
     let
         boardgames =
             model
-                |> allBoardGames
-                |> List.sortBy (.title << Tuple.second)
-                |> List.filter (isBoardGameApplicable model << Tuple.second)
+                |> filteredGames
                 |> List.map (uncurry viewBoardGame)
                 |> flip List.append
                     [ div
@@ -442,6 +479,29 @@ viewBoardGames model =
 
 view : Model -> Html Msg
 view model =
+    let
+        item icon txt =
+            div
+                [ classes
+                    [ "text-center"
+                    , "font-bold"
+                    , "flex"
+                    , "items-center"
+                    , "space-x-1"
+                    ]
+                ]
+                [ svg
+                    [ SA.class "h-8 w-8"
+                    , SA.stroke "currentColor"
+                    , SA.strokeWidth "2"
+                    , SA.viewBox "0 0 24 24"
+                    , SA.fill "none"
+                    ]
+                    [ icon ]
+                , span [ classes [ "text-left", "text-xl" ] ]
+                    [ text txt ]
+                ]
+    in
     div
         [ classes
             [ "bg-gray-300"
@@ -452,6 +512,78 @@ view model =
             ]
         ]
         [ div
+            [ classes
+                [ "fixed"
+                , "w-full"
+                , "h-full"
+                , "transform-gpu"
+                , "scale-y-0"
+                , "bg-white"
+                , "z-10"
+                , "transition-all"
+                , "origin-top"
+                , "border-2"
+                , "p-6"
+                , "opacity-90"
+                ]
+            , classList
+                [ ( "scale-y-100", Maybe.isJust model.randomlyChosenGame )
+                , ( "scale-y-0", Maybe.isNothing model.randomlyChosenGame )
+                ]
+            ]
+            [ case model.randomlyChosenGame of
+                Just ( u, bg ) ->
+                    div
+                        [ classes
+                            [ "flex"
+                            , "justify-between"
+                            , "h-full"
+                            ]
+                        ]
+                        [ div
+                            [ classes
+                                [ "flex"
+                                , "space-x-5"
+                                ]
+                            ]
+                            [ img
+                                [ classes
+                                    [ "max-h-full"
+                                    ]
+                                , src bg.fullSizeUrl
+                                ]
+                                []
+                            , div []
+                                [ item Icons.pencil (bg.title ++ " (" ++ String.fromInt bg.yearPublished ++ ")")
+                                , item Icons.star (R.round 1 bg.rating)
+                                , item Icons.users (R.round 0 bg.minPlayers ++ " - " ++ R.round 0 bg.maxPlayers)
+                                , item Icons.clock
+                                    (if bg.minPlaytime == bg.maxPlaytime then
+                                        R.round 0 bg.minPlaytime
+
+                                     else
+                                        R.round 0 bg.minPlaytime ++ " - " ++ R.round 0 bg.maxPlaytime
+                                    )
+                                , item Icons.user (String.join ", " u)
+                                ]
+                            ]
+                        , div []
+                            [ button [ onClick UnSelectRandomGame ]
+                                [ svg
+                                    [ SA.class "h-6 w-6"
+                                    , SA.stroke "currentColor"
+                                    , SA.strokeWidth "2"
+                                    , SA.viewBox "0 0 24 24"
+                                    ]
+                                    [ Icons.x ]
+                                ]
+                            ]
+                        ]
+
+                Nothing ->
+                    div [] []
+            ]
+        , div
             [ classes
                 [ "p-20"
                 , "flex"
@@ -709,7 +841,12 @@ filters model =
                                 , "w-96"
                                 ]
                             ]
-                            [ div [ classes [ "flex", "flex-col" ] ]
+                            [ div
+                                [ classes
+                                    [ "flex"
+                                    , "flex-col"
+                                    ]
+                                ]
                                 [ div [] [ text "Players" ]
                                 , div []
                                     [ SingleSlider.view model.playerCountSlider
@@ -726,6 +863,25 @@ filters model =
                                 , div []
                                     [ DoubleSlider.view model.ratingSlider
                                     ]
+                                ]
+                            , div
+                                [ classes
+                                    [ "flex"
+                                    , "justify-center"
+                                    ]
+                                ]
+                                [ button
+                                    [ onClick RandomlySelectGame
+                                    , classes
+                                        [ "hover:text-white"
+                                        , "bg-green-300"
+                                        , "p-3"
+                                        , "px-6"
+                                        , "rounded-lg"
+                                        , "hover:bg-green-500"
+                                        ]
+                                    ]
+                                    [ text "Pick One!" ]
                                 ]
                             ]
 
