@@ -26,6 +26,10 @@ jobs:
         node-version: '16'
     - run: npm ci
     - run: npm run build
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
     - name: Init new repo in dist folder and commit generated files
       run: |
         cd dist
