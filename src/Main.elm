@@ -518,13 +518,12 @@ view model =
                 , "h-full"
                 , "transform-gpu"
                 , "scale-y-0"
-                , "bg-white"
-                , "z-10"
+                , "bg-white/75"
+                , "z-20"
                 , "transition-all"
                 , "origin-top"
                 , "border-2"
                 , "p-6"
-                , "opacity-90"
                 ]
             , classList
                 [ ( "scale-y-100", Maybe.isJust model.randomlyChosenGame )
@@ -798,14 +797,13 @@ filters model =
             , "top-0"
             , "right-12"
             , "h-full"
+            , "translate-y-[50%]"
+            , "z-10"
             ]
         ]
         [ div
             [ classes
-                [ "sticky"
-                , "top-0"
-                , "right-12"
-                ]
+                []
             ]
             (Maybe.values
                 [ Just <|
