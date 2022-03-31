@@ -179,7 +179,10 @@ update msg model =
                             |> List.map (\u -> ( u, Loading ))
                             |> Dict.fromList
                 in
-                ( { model | results = Dict.union initDict model.results }
+                ( { model
+                    | results = Dict.union initDict model.results
+                    , selectedBoardGame = Nothing
+                  }
                 , model.usernamesToSearch
                     |> List.map (\u -> Api.getBoardGames (GotBoardGames u) u)
                     |> Cmd.batch
@@ -331,7 +334,6 @@ viewBoardGame u bg =
             , "group"
             ]
         , onMouseEnter (SelectBoardGame ( u, bg ))
-        , onMouseLeave UnselectBoardGame
         ]
         [ img
             [ src bg.thumbnailUrl
