@@ -44,17 +44,16 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "Github Actions"
         git commit -m "deploy"
-        ls -a
-    # - name: Force push to destination branch
-    #   uses: ad-m/github-push-action@v0.6.0
-    #   with:
-    #     # Token for the repo
-    #     # Can be passed in using $\{{ secrets.GITHUB_TOKEN }}
-    #     github_token: ${{ secrets.GITHUB_TOKEN }}
-    #     # Destination branch to push changes
-    #     branch: gh-pages
-    #     # Use force push to fully overwrite the destination branch
-    #     force: true
-    #     # We have to push from the folder where files were generated.
-    #     # Same where the new repo was initialized in the previous step
-    #     directory: .
+    - name: Force push to destination branch
+      uses: ad-m/github-push-action@v0.6.0
+      with:
+        # Token for the repo
+        # Can be passed in using $\{{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        # Destination branch to push changes
+        branch: gh-pages
+        # Use force push to fully overwrite the destination branch
+        force: true
+        # We have to push from the folder where files were generated.
+        # Same where the new repo was initialized in the previous step
+        directory: .
