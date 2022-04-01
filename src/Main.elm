@@ -22,6 +22,7 @@ import Html
 import Html.Attributes
     exposing
         ( classList
+        , disabled
         , placeholder
         , src
         , type_
@@ -178,6 +179,18 @@ update msg model =
             ( { model
                 | usernamesToSearch =
                     List.filter (\s -> s /= u) model.usernamesToSearch
+                , results = Dict.remove u model.results
+                , selectedBoardGame =
+                    case model.selectedBoardGame of
+                        Just ( us, _ ) ->
+                            if List.any (\x -> x == u) us then
+                                Nothing
+
+                            else
+                                model.selectedBoardGame
+
+                        Nothing ->
+                            model.selectedBoardGame
               }
             , Cmd.none
             )
@@ -295,8 +308,8 @@ subscriptions _ =
     Sub.none
 
 
-overlay : List String -> BoardGame -> Html Msg
-overlay u bg =
+selectedBoardGameOverlay : List String -> BoardGame -> Html Msg
+selectedBoardGameOverlay u bg =
     let
         item icon txt =
             div
@@ -467,14 +480,22 @@ viewBoardGames model =
                         ]
                         []
                     ]
-                |> div
+    in
+    if List.length boardgames == 1 then
+        div [ classes [ "p-3" ] ] [ text "No results." ]
+
+    else
+        div [ classes [ "p-3" ] ]
+            [ div []
+                [ div
                     [ classes
                         [ "flex"
                         , "flex-wrap"
                         ]
                     ]
-    in
-    div [ classes [ "p-3" ] ] [ div [] [ boardgames ] ]
+                    boardgames
+                ]
+            ]
 
 
 view : Model -> Html Msg
@@ -623,152 +644,173 @@ view model =
                         , "space-y-3"
                         ]
                     ]
-                    (Maybe.values
-                        [ Just
-                            (form
-                                [ onSubmit AddUsernameToSearch
-                                , classes [ "flex" ]
-                                ]
-                                [ input
-                                    [ type_ "text"
-                                    , placeholder
-                                        "Enter a board game geek username and press enter"
-                                    , classes
-                                        [ "p-6"
-                                        , "w-full"
-                                        , "border-2"
-                                        , "rounded-l-lg"
-                                        ]
-                                    , onInput CurrentUsernameChanged
-                                    , value model.currentUsername
-                                    ]
-                                    []
-                                , button
-                                    [ classes
-                                        [ "border-r-2"
-                                        , "border-y-2"
-                                        , "rounded-r-lg"
-                                        , "bg-gray-200"
-                                        , "p-3"
-                                        , "hover:bg-gray-400"
-                                        , "transition-colors"
-                                        ]
-                                    , type_ "submit"
-                                    ]
-                                    [ svg
-                                        [ SA.class "h-6 w-6"
-                                        , SA.stroke "currentColor"
-                                        , SA.strokeWidth "2"
-                                        , SA.viewBox "0 0 24 24"
-                                        ]
-                                        [ Icons.plus ]
-                                    ]
-                                ]
-                            )
-                        , if List.length model.usernamesToSearch > 0 then
-                            Just
-                                (div
-                                    [ classes
-                                        [ "flex"
-                                        , "items-center"
-                                        ]
-                                    ]
-                                    [ button
-                                        [ classes
-                                            [ "border-l-2"
-                                            , "border-y-2"
-                                            , "rounded-l-lg"
-                                            , "bg-gray-200"
-                                            , "p-5"
-                                            , "hover:bg-gray-400"
-                                            , "transition-colors"
-                                            ]
-                                        , onClick SearchForCollections
-                                        ]
-                                        [ svg
-                                            [ SA.class "h-6 w-6"
-                                            , SA.stroke "currentColor"
-                                            , SA.fill "none"
-                                            , SA.strokeWidth "2"
-                                            , SA.viewBox "0 0 24 24"
-                                            ]
-                                            [ Icons.search ]
-                                        ]
-                                    , div
-                                        [ classes
-                                            [ "flex"
-                                            , "space-x-3"
-                                            , "border-2"
-                                            , "rounded-r-lg"
-                                            , "p-3"
-                                            , "w-full"
-                                            ]
-                                        ]
-                                      <|
-                                        List.map
-                                            (\u ->
-                                                button
-                                                    [ classes
-                                                        [ "bg-gray-200"
-                                                        , "p-2"
-                                                        , "rounded-lg"
-                                                        , "hover:line-through"
-                                                        , "transition-colors"
-                                                        , "hover:bg-gray-300"
-                                                        , "flex"
-                                                        , "space-x-1"
-                                                        , "items-center"
-                                                        ]
-                                                    , onClick (RemoveUsername u)
-                                                    ]
-                                                    (Maybe.values
-                                                        [ Just (span [] [ text u ])
-                                                        , model.results
-                                                            |> Dict.get u
-                                                            |> Maybe.andThen
-                                                                (\r ->
-                                                                    if RemoteData.isLoading r then
-                                                                        Just (Icons.spinner [ SA.class "h-4", SA.class "w-4" ])
-
-                                                                    else
-                                                                        Nothing
-                                                                )
-                                                        ]
-                                                    )
-                                            )
-                                            model.usernamesToSearch
-                                    ]
-                                )
-
-                          else
-                            Nothing
-                        , Just
-                            (div
-                                [ classes
-                                    [ "border-2"
-                                    , "flex"
-                                    , "rounded-lg"
-                                    , "items-start"
-                                    , "flex-col"
-                                    , "flex-grow"
-                                    ]
-                                ]
-                                [ div
-                                    [ classes
-                                        [ "relative"
-                                        ]
-                                    ]
-                                    [ viewBoardGames model
-                                    , if hasResults model then
-                                        filters model
-
-                                      else
-                                        span [] []
-                                    ]
-                                ]
-                            )
+                    [ form
+                        [ onSubmit AddUsernameToSearch
+                        , classes [ "flex" ]
                         ]
-                    )
+                        [ input
+                            [ type_ "text"
+                            , placeholder
+                                "Enter a board game geek username and press enter"
+                            , classes
+                                [ "p-6"
+                                , "w-full"
+                                , "border-2"
+                                , "rounded-l-lg"
+                                ]
+                            , onInput CurrentUsernameChanged
+                            , value model.currentUsername
+                            ]
+                            []
+                        , button
+                            [ classes
+                                [ "border-r-2"
+                                , "border-y-2"
+                                , "rounded-r-lg"
+                                , "bg-gray-200"
+                                , "p-3"
+                                , "hover:bg-gray-400"
+                                , "transition-colors"
+                                ]
+                            , type_ "submit"
+                            ]
+                            [ svg
+                                [ SA.class "h-6 w-6"
+                                , SA.stroke "currentColor"
+                                , SA.strokeWidth "2"
+                                , SA.viewBox "0 0 24 24"
+                                ]
+                                [ Icons.plus ]
+                            ]
+                        ]
+                    , div
+                        [ classes
+                            [ "flex"
+                            , "items-center"
+                            ]
+                        ]
+                        [ button
+                            [ classes
+                                [ "border-l-2"
+                                , "border-y-2"
+                                , "rounded-l-lg"
+                                , "bg-gray-200"
+                                , "p-5"
+                                , "transition-colors"
+                                , "h-16"
+                                ]
+                            , classList [ ( "hover:bg-gray-400", not (List.isEmpty model.usernamesToSearch) ) ]
+                            , disabled (List.isEmpty model.usernamesToSearch)
+                            , onClick SearchForCollections
+                            ]
+                            [ svg
+                                [ SA.class "h-6 w-6"
+                                , SA.stroke "currentColor"
+                                , SA.fill "none"
+                                , SA.strokeWidth "2"
+                                , SA.viewBox "0 0 24 24"
+                                ]
+                                [ Icons.search ]
+                            ]
+                        , div
+                            [ classes
+                                [ "flex"
+                                , "space-x-3"
+                                , "border-2"
+                                , "rounded-r-lg"
+                                , "p-3"
+                                , "w-full"
+                                , "h-16"
+                                ]
+                            ]
+                          <|
+                            List.map
+                                (\u ->
+                                    button
+                                        [ classes
+                                            [ "bg-gray-200"
+                                            , "p-2"
+                                            , "rounded-lg"
+                                            , "hover:line-through"
+                                            , "transition-colors"
+                                            , "hover:bg-gray-300"
+                                            , "flex"
+                                            , "space-x-1"
+                                            , "items-center"
+                                            ]
+                                        , onClick (RemoveUsername u)
+                                        ]
+                                        (Maybe.values
+                                            [ Just (span [] [ text u ])
+                                            , model.results
+                                                |> Dict.get u
+                                                |> Maybe.andThen
+                                                    (\r ->
+                                                        case r of
+                                                            Loading ->
+                                                                Just
+                                                                    (Icons.spinner
+                                                                        [ SA.class "h-6"
+                                                                        , SA.class "w-6"
+                                                                        ]
+                                                                    )
+
+                                                            Success _ ->
+                                                                Just
+                                                                    (svg
+                                                                        [ SA.class "h-6 w-6"
+                                                                        , SA.stroke "green"
+                                                                        , SA.strokeWidth "2"
+                                                                        , SA.viewBox "0 0 24 24"
+                                                                        , SA.fill "none"
+                                                                        ]
+                                                                        [ Icons.check ]
+                                                                    )
+
+                                                            Failure _ ->
+                                                                Just
+                                                                    (svg
+                                                                        [ SA.class "h-6 w-6"
+                                                                        , SA.stroke "red"
+                                                                        , SA.strokeWidth "2"
+                                                                        , SA.viewBox "0 0 24 24"
+                                                                        , SA.fill "none"
+                                                                        ]
+                                                                        [ Icons.x ]
+                                                                    )
+
+                                                            _ ->
+                                                                Nothing
+                                                    )
+                                            ]
+                                        )
+                                )
+                                model.usernamesToSearch
+                        ]
+                    , div
+                        [ classes
+                            [ "border-2"
+                            , "flex"
+                            , "rounded-lg"
+                            , "items-start"
+                            , "flex-col"
+                            , "flex-grow"
+                            ]
+                        ]
+                        [ div
+                            [ classes
+                                [ "relative"
+                                ]
+                            ]
+                            [ viewBoardGames model
+                            , if hasResults model then
+                                filters model
+
+                              else
+                                span [] []
+                            ]
+                        ]
+                    ]
                 ]
             ]
         , case model.selectedBoardGame of
@@ -782,7 +824,7 @@ view model =
                         , "h-36"
                         ]
                     ]
-                    [ overlay u bg ]
+                    [ selectedBoardGameOverlay u bg ]
 
             Nothing ->
                 div [] []
