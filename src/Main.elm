@@ -9,6 +9,7 @@ import Helpers exposing (..)
 import Html
     exposing
         ( Html
+        , a
         , button
         , div
         , form
@@ -23,8 +24,10 @@ import Html.Attributes
     exposing
         ( classList
         , disabled
+        , href
         , placeholder
         , src
+        , target
         , type_
         , value
         )
@@ -352,7 +355,12 @@ selectedBoardGameOverlay u bg =
                 , "flex-col"
                 ]
             ]
-            [ item Icons.pencil (bg.title ++ " (" ++ String.fromInt bg.yearPublished ++ ")")
+            [ a
+                [ href ("https://boardgamegeek.com/boardgame/" ++ bg.bggId)
+                , target "_blank"
+                , classes [ "underline" ]
+                ]
+                [ item Icons.pencil (bg.title ++ " (" ++ String.fromInt bg.yearPublished ++ ")") ]
             , item Icons.star (R.round 1 bg.rating)
             , item Icons.users (R.round 0 bg.minPlayers ++ " - " ++ R.round 0 bg.maxPlayers)
             , item Icons.clock
