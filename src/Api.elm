@@ -52,5 +52,5 @@ getBoardGames msg username =
                 }
     in
     task
-        |> Retry.with [ Retry.exponentialBackoff { interval = 1500, maxInterval = 6000 } ]
+        --|> Retry.with [ Retry.exponentialBackoff { interval = 1500, maxInterval = 6000 } ]
         |> Task.attempt msg
