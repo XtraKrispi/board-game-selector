@@ -9,7 +9,7 @@ import Xml.Decode as Decode
 
 baseUrl : String
 baseUrl =
-    "https://api.geekdo.com/xmlapi2"
+    "https://boardgamegeek.com/xmlapi2"
 
 
 parseXmlResponse : Decode.Decoder a -> Http.Response String -> Result Http.Error a

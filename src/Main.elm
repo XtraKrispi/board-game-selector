@@ -365,10 +365,12 @@ selectedBoardGameOverlay u bg =
             , item Icons.users (R.round 0 bg.minPlayers ++ " - " ++ R.round 0 bg.maxPlayers)
             , item Icons.clock
                 (if bg.minPlaytime == bg.maxPlaytime then
-                    R.round 0 bg.minPlaytime
+                    bg.minPlaytime
+                        |> Maybe.map (R.round 0)
+                        |> Maybe.withDefault "N/A"
 
                  else
-                    R.round 0 bg.minPlaytime ++ " - " ++ R.round 0 bg.maxPlaytime
+                    Maybe.withDefault "N/A" (Maybe.map (R.round 0) bg.minPlaytime) ++ " - " ++ Maybe.withDefault "N/A" (Maybe.map (R.round 0) bg.maxPlaytime)
                 )
             , item Icons.user (String.join ", " u)
             ]
@@ -422,9 +424,9 @@ isBoardGameApplicable model bg =
         <= players
         && bg.maxPlayers
         >= players
-        && bg.minPlaytime
+        && Maybe.withDefault 0 bg.minPlaytime
         >= minPlaytime
-        && bg.maxPlaytime
+        && Maybe.withDefault 0 bg.maxPlaytime
         <= maxPlaytime
         && bg.rating
         >= minRating
@@ -587,10 +589,12 @@ view model =
                                 , item Icons.users (R.round 0 bg.minPlayers ++ " - " ++ R.round 0 bg.maxPlayers)
                                 , item Icons.clock
                                     (if bg.minPlaytime == bg.maxPlaytime then
-                                        R.round 0 bg.minPlaytime
+                                        bg.minPlaytime
+                                            |> Maybe.map (R.round 0)
+                                            |> Maybe.withDefault "N/A"
 
                                      else
-                                        R.round 0 bg.minPlaytime ++ " - " ++ R.round 0 bg.maxPlaytime
+                                        Maybe.withDefault "N/A" (Maybe.map (R.round 0) bg.minPlaytime) ++ " - " ++ Maybe.withDefault "N/A" (Maybe.map (R.round 0) bg.maxPlaytime)
                                     )
                                 , item Icons.user (String.join ", " u)
                                 ]

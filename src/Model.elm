@@ -9,8 +9,8 @@ type alias BoardGame =
     , yearPublished : Int
     , minPlayers : Float
     , maxPlayers : Float
-    , minPlaytime : Float
-    , maxPlaytime : Float
+    , minPlaytime : Maybe Float
+    , maxPlaytime : Maybe Float
     , rating : Float
     , thumbnailUrl : String
     , fullSizeUrl : String
@@ -29,8 +29,8 @@ boardgameDecoder =
         |> Decode.andMap (Decode.path [ "yearpublished" ] (Decode.single Decode.int))
         |> Decode.andMap (Decode.path [ "stats" ] (Decode.single (Decode.floatAttr "minplayers")))
         |> Decode.andMap (Decode.path [ "stats" ] (Decode.single (Decode.floatAttr "maxplayers")))
-        |> Decode.andMap (Decode.path [ "stats" ] (Decode.single (Decode.floatAttr "minplaytime")))
-        |> Decode.andMap (Decode.path [ "stats" ] (Decode.single (Decode.floatAttr "maxplaytime")))
+        |> Decode.andMap (Decode.path [ "stats" ] (Decode.single (Decode.maybe (Decode.floatAttr "minplaytime"))))
+        |> Decode.andMap (Decode.path [ "stats" ] (Decode.single (Decode.maybe (Decode.floatAttr "maxplaytime"))))
         |> Decode.andMap (Decode.path [ "stats", "rating", "average" ] (Decode.single (Decode.floatAttr "value")))
         |> Decode.andMap (Decode.path [ "thumbnail" ] (Decode.single Decode.string))
         |> Decode.andMap (Decode.path [ "image" ] (Decode.single Decode.string))
